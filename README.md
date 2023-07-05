@@ -26,7 +26,7 @@ import {
 
 However, before you can use the stores, you must use `createConfig` from this package instead of directly from wagmi (see below). This is because wagmi provides no hook for when a config has been created.
 
-### Setup
+### Example Setup
 ```html
 <script>
 import { browser } from '$app/environment';
