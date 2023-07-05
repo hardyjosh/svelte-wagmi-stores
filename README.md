@@ -1,58 +1,76 @@
-# create-svelte
+# svelte-wagmi-stores
 
-Everything you need to build a Svelte library, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+A simple wrapper around the @wagmi/core library, providing readable stores for use in Svelte/SvelteKit applications.
 
-Read more about creating a library [in the docs](https://kit.svelte.dev/docs/packaging).
+## Installation
 
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
+Add the `svelte-wagmi-stores` package and the peer dependencies.
 
 ```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
+npm i svelte-wagmi-stores @wagmi/core viem
 ```
 
-## Developing
+## Usage
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+This library provides the following stores as wrappers around the corresponding `watch` actions from the [@wagmi/core api](https://wagmi.sh/core/actions/watchAccount).
 
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+```javascript
+import {
+    account,
+    blockNumber,
+    network,
+    publicClient,
+    walletClient
+}
 ```
 
-Everything inside `src/lib` is part of your library, everything inside `src/routes` can be used as a showcase or preview app.
+However, before you can use the stores, you must use `createConfig` from this package instead of directly from wagmi (see below). This is because wagmi provides no hook for when a config has been created.
 
-## Building
+### Setup
+```html
+<script>
+import { browser } from '$app/environment';
+import { configureChains } from '@wagmi/core'
+import { mainnet, polygon } from '@wagmi/core/chains'
+import { createConfig, account } from 'svelte-wagmi-stores';
+// this example also uses Web3Modal - you'll need to install this yourself
+import { Web3Modal } from '@web3modal/html'
+import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum'
 
-To build your library:
 
-```bash
-npm run package
+// all this boilerplate is from the web3modal docs
+const chains = [mainnet, polygon]
+const projectId = import.meta.env.VITE_PROJECT_ID
+
+const { publicClient } = configureChains(chains, [w3mProvider({ projectId })])
+
+// except here we're using createConfig form this package instead of wagmi
+const wagmiConfig = createConfig({
+  autoConnect: true,
+  connectors: w3mConnectors({ projectId, chains }),
+  publicClient
+})
+
+const ethereumClient = new EthereumClient(wagmiConfig, chains)
+
+let web3modal: Web3Modal
+
+// necessary if you're using SSR, because there's no window for the modal to attach to
+$: if (browser) {
+  web3modal = new Web3Modal({ projectId }, ethereumClient)
+  web3modal.setDefaultChain(polygon)
+}
+</script>
+
+{#if web3modal}
+    <button on:click={() => web3modal.openModal()}>
+    {#if $account?.isConnected}
+        Disconnect
+    {:else}
+        Connect
+    {/if}
+    </button>
+{/if}
 ```
 
-To create a production version of your showcase app:
 
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
-
-## Publishing
-
-Go into the `package.json` and give your package the desired name through the `"name"` option. Also consider adding a `"license"` field and point it to a `LICENSE` file which you can create from a template (one popular option is the [MIT license](https://opensource.org/license/mit/)).
-
-To publish your library to [npm](https://www.npmjs.com):
-
-```bash
-npm publish
-```
