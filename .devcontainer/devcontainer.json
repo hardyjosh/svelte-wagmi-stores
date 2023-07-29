@@ -10,7 +10,8 @@
 				"svelte.svelte-vscode",
 				"esbenp.prettier-vscode",
 				"eamodio.gitlens",
-				"GitHub.copilot"
+				"GitHub.copilot",
+				"GitHub.vscode-github-actions"
 			]
 		}
 	}
