@@ -2,6 +2,8 @@
 
 A simple wrapper around the @wagmi/core library, providing readable stores for use in Svelte/SvelteKit applications.
 
+**This library is currently under active development and is subject to frequent breaking changes. It is recommended to pin dependencies to a specific version.**
+
 ## Installation
 
 Add the `svelte-wagmi-stores` package and the peer dependencies.
@@ -27,6 +29,7 @@ import {
 However, before you can use the stores, you must use `createConfig` from this package instead of directly from wagmi (see below). This is because wagmi provides no hook for when a config has been created.
 
 ### Example Setup
+
 ```html
 <script>
 import { browser } from '$app/environment';
@@ -72,5 +75,3 @@ $: if (browser) {
     </button>
 {/if}
 ```
-
-

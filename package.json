@@ -1,16 +1,16 @@
 {
 	"name": "svelte-wagmi-stores",
 	"description": "A simple wrapper around the @wagmi/core library, providing readable stores for use in Svelte/SvelteKit applications.",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"repository": "github:hardyjosh/svelte-wagmi-stores",
 	"licence": "MIT",
 	"author": {
 		"name": "Josh Hardy",
 		"github": "hardyjosh",
 		"twitter": "@highonhopium"
-	  },
+	},
 	"scripts": {
-		"dev": "vite dev --port 5173 --host 0.0.0.0",
+		"dev": "vite dev --port 5174 --host 0.0.0.0",
 		"build": "vite build && npm run package",
 		"preview": "vite preview",
 		"package": "svelte-kit sync && svelte-package && publint",
@@ -69,5 +69,5 @@
 		"svelte",
 		"ethereum",
 		"wagmi"
-	  ]
+	]
 }
