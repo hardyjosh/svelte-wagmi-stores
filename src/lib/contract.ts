@@ -1,7 +1,7 @@
 import { walletClient } from "./stores.js";
-import { prepareWriteContract, writeContract, type PrepareWriteContractConfig, type PrepareWriteContractResult, type WalletClient, type WriteContractPreparedArgs, type WriteContractResult, type WriteContractUnpreparedArgs, waitForTransaction } from "@wagmi/core";
+import { prepareWriteContract, writeContract, getPublicClient, type ReadContractConfig, type ReadContractResult, type PrepareWriteContractConfig, type PrepareWriteContractResult, type WalletClient, type WriteContractPreparedArgs, type WriteContractResult, type WriteContractUnpreparedArgs, waitForTransaction } from "@wagmi/core";
 import { derived, writable, type Writable } from "svelte/store";
-import type { Abi, Hex, TransactionReceipt } from "viem";
+import type { Abi, Hex, ReadContractParameters, TransactionReceipt } from "viem";
 
 /**
  * 
@@ -48,6 +48,33 @@ export class WagmiContract<TAbi extends Abi> {
     private address: `0x${string}` | undefined
     private walletClient: WalletClient | undefined
     private abi: TAbi
+
+    async read<
+        TFunctionName extends string,
+    >({
+        account,
+        chainId,
+        args,
+        functionName,
+        blockNumber,
+        blockTag,
+    }: Omit<ReadContractConfig<TAbi, TFunctionName>, 'address' | "abi">): Promise<
+        ReadContractResult<TAbi, TFunctionName> | undefined
+    > {
+        if (!this.address) {
+            return undefined
+        }
+        const publicClient = getPublicClient({ chainId })
+        return publicClient.readContract({
+            abi: this.abi,
+            address: this.address,
+            account,
+            functionName,
+            args,
+            blockNumber,
+            blockTag,
+        } as unknown as ReadContractParameters<TAbi, TFunctionName>)
+    };
 
     async prepareWrite<
         TFunctionName extends string,
