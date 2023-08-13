@@ -1,7 +1,7 @@
 {
 	"name": "svelte-wagmi-stores",
 	"description": "A simple wrapper around the @wagmi/core library, providing readable stores for use in Svelte/SvelteKit applications.",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"repository": "github:hardyjosh/svelte-wagmi-stores",
 	"licence": "MIT",
 	"author": {

@@ -11,7 +11,7 @@
 		wagmiConfigSetup,
 		network,
 		walletClient
-	} from '$lib';
+	} from '$lib/index.js';
 
 	const chains = [mainnet, polygon];
 	const projectId = import.meta.env.VITE_PROJECT_ID;
