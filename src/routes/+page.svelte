@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum';
-	import { Web3Modal } from '@web3modal/html';
+	// import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum';
+	// import { Web3Modal } from '@web3modal/html';
+	import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi1';
+
 	import { configureChains } from '@wagmi/core';
 	import { mainnet, polygon } from '@wagmi/core/chains';
 	import { browser } from '$app/environment';
@@ -14,26 +16,25 @@
 	} from '$lib/index.js';
 
 	const chains = [mainnet, polygon];
-	const projectId = import.meta.env.VITE_PROJECT_ID;
+	const projectId = 'ec4373bcaa770976ed0cf783a7f51aab';
 
-	const { publicClient } = configureChains(chains, [w3mProvider({ projectId })]);
-	const wagmiConfig = createConfig({
-		autoConnect: false,
-		connectors: w3mConnectors({ projectId, chains }),
-		publicClient
-	});
-	const ethereumClient = new EthereumClient(wagmiConfig, chains);
+	const metadata = {
+		name: 'Web3Modal',
+		description: 'Web3Modal Example',
+		url: 'https://web3modal.com',
+		icons: ['https://avatars.githubusercontent.com/u/37784886']
+	};
+	const wagmiConfig = defaultWagmiConfig({ chains, projectId, appName: metadata.name });
 
-	let web3modal: Web3Modal;
+	let web3modal;
 
 	$: if (browser) {
-		web3modal = new Web3Modal({ projectId }, ethereumClient);
-		web3modal.setDefaultChain(polygon);
+		web3modal = createWeb3Modal({ wagmiConfig, projectId, chains });
 	}
 </script>
 
 {#if web3modal}
-	<button on:click={() => web3modal.openModal()}>
+	<button on:click={() => web3modal.open()}>
 		{#if $account?.isConnected}
 			Disconnect
 		{:else}
