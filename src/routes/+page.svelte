@@ -1,11 +1,11 @@
 <script lang="ts">
-	// import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum';
-	// import { Web3Modal } from '@web3modal/html';
 	import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi1';
-
 	import { configureChains } from '@wagmi/core';
 	import { mainnet, polygon } from '@wagmi/core/chains';
 	import { browser } from '$app/environment';
+
+	// TODO: Update use of createConfig
+
 	import {
 		blockNumber,
 		account,
@@ -16,7 +16,7 @@
 	} from '$lib/index.js';
 
 	const chains = [mainnet, polygon];
-	const projectId = 'ec4373bcaa770976ed0cf783a7f51aab';
+	const projectId = import.meta.env.VITE_PROJECT_ID;
 
 	const metadata = {
 		name: 'Web3Modal',
@@ -24,6 +24,7 @@
 		url: 'https://web3modal.com',
 		icons: ['https://avatars.githubusercontent.com/u/37784886']
 	};
+
 	const wagmiConfig = defaultWagmiConfig({ chains, projectId, appName: metadata.name });
 
 	let web3modal;
