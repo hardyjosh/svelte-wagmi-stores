@@ -40,7 +40,8 @@ However, before you can use the stores, you must use `createConfig` from this pa
 		blockNumber,
 		account,
 		createConfig,
-		walletClient
+		walletClient,
+		wagmiConfig,
 	} from '$lib/index.js';
 
 	const projectId = import.meta.env.VITE_PROJECT_ID;
@@ -51,7 +52,7 @@ However, before you can use the stores, you must use `createConfig` from this pa
 		icons: ['https://avatars.githubusercontent.com/u/37784886']
 	}
 
-	const wagmiConfig = createConfig({
+	createConfig({
     chains: [mainnet, polygon],
     transports: {
 			[mainnet.id]: http("mainnet-rpc-url"),
@@ -67,7 +68,7 @@ However, before you can use the stores, you must use `createConfig` from this pa
 
 	$: if (browser) {
 		web3modal = createWeb3Modal({
-			wagmiConfig,
+			wagmiConfig: $wagmiConfig,
 			projectId,
 			enableAnalytics: true, // Optional - defaults to your Cloud configuration
 			enableOnramp: true, // Optional - false as default
@@ -87,11 +88,6 @@ However, before you can use the stores, you must use `createConfig` from this pa
 	</button>
 {/if}
 
-<p>wagmiConfig set up</p>
-<p>
-	{$wagmiConfig}
-</p>
-<hr />
 <p>blockumber</p>
 <p>
 	{$blockNumber}

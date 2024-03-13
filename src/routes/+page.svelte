@@ -56,11 +56,6 @@
 	</button>
 {/if}
 
-<p>wagmiConfig set up</p>
-<p>
-	{$wagmiConfig}
-</p>
-<hr />
 <p>blockumber</p>
 <p>
 	{$blockNumber}
