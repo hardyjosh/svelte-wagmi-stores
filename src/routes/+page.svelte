@@ -8,7 +8,8 @@
 		blockNumber,
 		account,
 		createConfig,
-		walletClient
+		walletClient,
+		wagmiConfig,
 	} from '$lib/index.js';
 
 	const projectId = import.meta.env.VITE_PROJECT_ID;
@@ -19,7 +20,7 @@
 		icons: ['https://avatars.githubusercontent.com/u/37784886']
 	}
 
-	const wagmiConfig = createConfig({
+	createConfig({
     chains: [mainnet, polygon],
     transports: {
 			[mainnet.id]: http("mainnet-rpc-url"),
@@ -35,7 +36,7 @@
 
 	$: if (browser) {
 		web3modal = createWeb3Modal({
-			wagmiConfig,
+			wagmiConfig: $wagmiConfig,
 			projectId,
 			enableAnalytics: true, // Optional - defaults to your Cloud configuration
 			enableOnramp: true, // Optional - false as default
