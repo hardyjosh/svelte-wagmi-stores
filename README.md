@@ -9,7 +9,7 @@ A simple wrapper around the @wagmi/core library, providing readable stores for u
 Add the `svelte-wagmi-stores` package and the peer dependencies.
 
 ```bash
-npm i svelte-wagmi-stores @wagmi/core viem
+npm i svelte-wagmi-stores @wagmi/core @wagmi/connectors @web3modal/wagmi viem
 ```
 
 ## Usage
@@ -20,7 +20,6 @@ This library provides the following stores as wrappers around the corresponding 
 import {
     account,
     blockNumber,
-    network,
     publicClient,
     walletClient
 }
@@ -32,46 +31,81 @@ However, before you can use the stores, you must use `createConfig` from this pa
 
 ```html
 <script>
-import { browser } from '$app/environment';
-import { configureChains } from '@wagmi/core'
-import { mainnet, polygon } from '@wagmi/core/chains'
-import { createConfig, account } from 'svelte-wagmi-stores';
-// this example also uses Web3Modal - you'll need to install this yourself
-import { Web3Modal } from '@web3modal/html'
-import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum'
+	import { http } from '@wagmi/core';
+	import { browser } from '$app/environment';
+	import { walletConnect } from '@wagmi/connectors';
+	import { createWeb3Modal } from '@web3modal/wagmi';
+	import { mainnet, polygon } from '@wagmi/core/chains';
+	import {
+		blockNumber,
+		account,
+		createConfig,
+		walletClient
+	} from '$lib/index.js';
 
+	const projectId = import.meta.env.VITE_PROJECT_ID;
+	const metadata = {
+		name: 'project-name',
+		description: "some description",
+		url: 'https://some-url.com', // must match with walletconnect domain
+		icons: ['https://avatars.githubusercontent.com/u/37784886']
+	}
 
-// all this boilerplate is from the web3modal docs
-const chains = [mainnet, polygon]
-const projectId = import.meta.env.VITE_PROJECT_ID
+	const wagmiConfig = createConfig({
+    chains: [mainnet, polygon],
+    transports: {
+			[mainnet.id]: http("mainnet-rpc-url"),
+			[polygon.id]: http("polygon-rpc-url")
+		},
+    connectors: [
+      walletConnect({ projectId, metadata, showQrModal: false }),
+			// ... other connectors
+    ],
+  });
 
-const { publicClient } = configureChains(chains, [w3mProvider({ projectId })])
+	let web3modal: ReturnType<typeof createWeb3Modal>;
 
-// except here we're using createConfig form this package instead of wagmi
-const wagmiConfig = createConfig({
-  autoConnect: true,
-  connectors: w3mConnectors({ projectId, chains }),
-  publicClient
-})
+	$: if (browser) {
+		web3modal = createWeb3Modal({
+			wagmiConfig,
+			projectId,
+			enableAnalytics: true, // Optional - defaults to your Cloud configuration
+			enableOnramp: true, // Optional - false as default
+			// ... other options
+		});
+	}
 
-const ethereumClient = new EthereumClient(wagmiConfig, chains)
-
-let web3modal: Web3Modal
-
-// necessary if you're using SSR, because there's no window for the modal to attach to
-$: if (browser) {
-  web3modal = new Web3Modal({ projectId }, ethereumClient)
-  web3modal.setDefaultChain(polygon)
-}
 </script>
 
 {#if web3modal}
-    <button on:click={() => web3modal.openModal()}>
-    {#if $account?.isConnected}
-        Disconnect
-    {:else}
-        Connect
-    {/if}
-    </button>
+	<button on:click={() => web3modal.open()}>
+		{#if $account?.isConnected}
+			Disconnect
+		{:else}
+			Connect
+		{/if}
+	</button>
 {/if}
+
+<p>wagmiConfig set up</p>
+<p>
+	{$wagmiConfig}
+</p>
+<hr />
+<p>blockumber</p>
+<p>
+	{$blockNumber}
+</p>
+<hr />
+<p>walletClient</p>
+<p>
+	{$walletClient}
+</p>
+<hr />
+
+<p>account</p>
+<pre>
+  {JSON.stringify($account, null, 2)}
+</pre>
+<hr />
 ```

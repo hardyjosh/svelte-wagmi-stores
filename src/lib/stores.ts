@@ -1,6 +1,19 @@
-import { type GetAccountReturnType, type Config, type GetPublicClientReturnType, watchAccount, watchBlockNumber, watchPublicClient, createConfig as wagmiCreateConfig, type CreateConfigParameters, type GetWalletClientReturnType, getWalletClient, getPublicClient, getAccount } from '@wagmi/core'
-import { type Writable, derived, writable, type Readable } from 'svelte/store';
 import type { Chain, Transport } from 'viem';
+import { type Writable, derived, writable, type Readable } from 'svelte/store';
+import { 
+    getAccount, 
+    type Config,
+    watchAccount, 
+    getWalletClient, 
+    getPublicClient, 
+    watchBlockNumber, 
+    watchPublicClient, 
+    type GetAccountReturnType,  
+    type CreateConfigParameters, 
+    type GetWalletClientReturnType, 
+    type GetPublicClientReturnType, 
+    createConfig as wagmiCreateConfig, 
+} from '@wagmi/core'
 
 export const wagmiConfig = writable<Config>();
 
@@ -15,8 +28,9 @@ export const createConfig = <
     return _wagmiConfig
 }
 
-export const account = derived<Writable<Config>, undefined | GetAccountReturnType>(wagmiConfig, ($wagmiConfig, set) => {
-    if ($wagmiConfig) {
+export const account = derived<Writable<Config>, GetAccountReturnType>(
+    wagmiConfig, 
+    ($wagmiConfig, set) => {
         set(getAccount($wagmiConfig))
         return watchAccount($wagmiConfig, {
             onChange(account) {
@@ -24,29 +38,22 @@ export const account = derived<Writable<Config>, undefined | GetAccountReturnTyp
             }
         })
     }
-})
+)
 
-export const blockNumber = derived<Writable<Config>, undefined | bigint>(wagmiConfig, ($wagmiConfig, set) => {
-    if ($wagmiConfig) {
+export const blockNumber = derived<Writable<Config>, bigint>(
+    wagmiConfig, 
+    ($wagmiConfig, set) => {
         return watchBlockNumber($wagmiConfig, {
             onBlockNumber(blockNumber) {
                 set(blockNumber)
             }    
         })
     }
-})
+)
 
-// export const network = derived<Writable<Config>, undefined | GetNetworkResult>(wagmiConfig, ($wagmiConfig, set) => {
-//     if ($wagmiConfig) {
-//         set(getNetwork())
-//         return watchNetwork($wagmiConfig, (network) => {
-//             set(network)
-//         })
-//     }
-// })
-
-export const publicClient = derived<Writable<Config>, undefined | GetPublicClientReturnType>(wagmiConfig, ($wagmiConfig, set) => {
-    if ($wagmiConfig) {
+export const publicClient = derived<Writable<Config>, GetPublicClientReturnType>(
+    wagmiConfig, 
+    ($wagmiConfig, set) => {
         set(getPublicClient($wagmiConfig))
         return watchPublicClient($wagmiConfig, {
             onChange(publicClient) {
@@ -54,10 +61,11 @@ export const publicClient = derived<Writable<Config>, undefined | GetPublicClien
             }
         })
     }
-})
+)
 
-export const walletClient: Readable<undefined | GetWalletClientReturnType> = derived<Writable<Config>, undefined | GetWalletClientReturnType>(wagmiConfig, ($wagmiConfig, set) => {
-    if ($wagmiConfig) {
+export const walletClient: Readable<GetWalletClientReturnType> = derived<Writable<Config>, GetWalletClientReturnType>(
+    wagmiConfig, 
+    ($wagmiConfig, set) => {
         getWalletClient($wagmiConfig).then(r => set(r))
     }
-})
+)
