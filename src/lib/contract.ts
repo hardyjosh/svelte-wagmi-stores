@@ -1,7 +1,7 @@
 import { wagmiConfig, walletClient } from "./stores.js";
 import { writeContract, type ReadContractParameters, type ReadContractReturnType, type WriteContractParameters, type WriteContractReturnType, readContract, waitForTransaction } from "@wagmi/core";
 import { derived, get, writable, type Writable } from "svelte/store";
-import type { Abi, Hex, TransactionReceipt, WalletClient } from "viem";
+import type { Abi, Hex, TransactionReceipt, WalletClient, ContractFunctionArgs, ContractFunctionName } from "viem";
 
 /**
  * 
@@ -38,7 +38,7 @@ type ContractWriteReturn = {
     status: Writable<'idle' | 'error' | 'loading' | 'success'>
 }
 
-export class WagmiContract<TAbi extends Abi> {
+export class WagmiContract<TAbi extends Abi | readonly unknown[]> {
     constructor(abi: TAbi, address?: `0x${string}`, walletClient?: WalletClient) {
         this.address = address
         this.walletClient = walletClient
@@ -55,8 +55,8 @@ export class WagmiContract<TAbi extends Abi> {
         functionName,
         blockNumber,
         blockTag,
-      }: ReadContractParameters
-    ): Promise<ReadContractReturnType | undefined> {
+      }: Omit<ReadContractParameters<TAbi>, "address" | "abi">
+    ): Promise<ReadContractReturnType<TAbi> | undefined> {
         if (!this.address) {
             return undefined
         }
@@ -70,7 +70,7 @@ export class WagmiContract<TAbi extends Abi> {
             args,
             blockNumber,
             blockTag,
-          }
+          } as ReadContractParameters<TAbi>
         )
     };
 
