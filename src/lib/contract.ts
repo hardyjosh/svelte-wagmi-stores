@@ -38,7 +38,7 @@ type ContractWriteReturn = {
     status: Writable<'idle' | 'error' | 'loading' | 'success'>
 }
 
-export class WagmiContract<TAbi extends Abi | readonly unknown[]> {
+export class WagmiContract<TAbi extends Abi> {
     constructor(abi: TAbi, address?: `0x${string}`, walletClient?: WalletClient) {
         this.address = address
         this.walletClient = walletClient
