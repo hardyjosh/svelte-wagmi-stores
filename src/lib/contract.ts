@@ -1,7 +1,7 @@
 import { wagmiConfig, walletClient } from "./stores.js";
 import { writeContract, type ReadContractParameters, type ReadContractReturnType, type WriteContractParameters, type WriteContractReturnType, readContract, waitForTransaction } from "@wagmi/core";
 import { derived, get, writable, type Writable } from "svelte/store";
-import type { Abi, Hex, TransactionReceipt, WalletClient, ContractFunctionArgs, ContractFunctionName } from "viem";
+import type { Abi, Hex, TransactionReceipt, WalletClient } from "viem";
 
 /**
  * 
