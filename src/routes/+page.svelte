@@ -1,39 +1,53 @@
 <script lang="ts">
-	import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum';
-	import { Web3Modal } from '@web3modal/html';
-	import { configureChains } from '@wagmi/core';
-	import { mainnet, polygon } from '@wagmi/core/chains';
+	import { http } from '@wagmi/core';
 	import { browser } from '$app/environment';
+	import { walletConnect } from '@wagmi/connectors';
+	import { createWeb3Modal } from '@web3modal/wagmi';
+	import { mainnet, polygon } from '@wagmi/core/chains';
 	import {
 		blockNumber,
 		account,
 		createConfig,
-		wagmiConfigSetup,
-		network,
-		walletClient
+		walletClient,
+		wagmiConfig,
 	} from '$lib/index.js';
 
-	const chains = [mainnet, polygon];
 	const projectId = import.meta.env.VITE_PROJECT_ID;
+	const metadata = {
+		name: 'project-name',
+		description: 'some description',
+		url: 'https://some-url.com', // must match with walletconnect domain
+		icons: ['https://avatars.githubusercontent.com/u/37784886']
+	}
 
-	const { publicClient } = configureChains(chains, [w3mProvider({ projectId })]);
-	const wagmiConfig = createConfig({
-		autoConnect: false,
-		connectors: w3mConnectors({ projectId, chains }),
-		publicClient
+	createConfig({
+		chains: [mainnet, polygon],
+		transports: {
+			[mainnet.id]: http(mainnet.rpcUrls.default.http[0]), // or desired rpc url of the network
+			[polygon.id]: http(polygon.rpcUrls.default.http[0])  // or desired rpc url of the network
+		},
+		connectors: [
+			walletConnect({ projectId, metadata, showQrModal: false }),
+			// ... other connectors
+		],
 	});
-	const ethereumClient = new EthereumClient(wagmiConfig, chains);
 
-	let web3modal: Web3Modal;
+	let web3modal: ReturnType<typeof createWeb3Modal>;
 
 	$: if (browser) {
-		web3modal = new Web3Modal({ projectId }, ethereumClient);
-		web3modal.setDefaultChain(polygon);
+		web3modal = createWeb3Modal({
+			wagmiConfig: $wagmiConfig,
+			projectId,
+			enableAnalytics: true, // Optional - defaults to your Cloud configuration
+			enableOnramp: true, // Optional - false as default
+			// ... other options
+		});
 	}
+
 </script>
 
 {#if web3modal}
-	<button on:click={() => web3modal.openModal()}>
+	<button on:click={() => web3modal.open()}>
 		{#if $account?.isConnected}
 			Disconnect
 		{:else}
@@ -42,11 +56,6 @@
 	</button>
 {/if}
 
-<p>wagmiConfig set up</p>
-<p>
-	{$wagmiConfigSetup}
-</p>
-<hr />
 <p>blockumber</p>
 <p>
 	{$blockNumber}
@@ -60,11 +69,6 @@
 
 <p>account</p>
 <pre>
-  <!-- {JSON.stringify($account, null, 2)} -->
+	{JSON.stringify($account, null, 2)}
 </pre>
 <hr />
-
-<p>network</p>
-<pre>
-  {JSON.stringify($network, null, 2)}
-</pre>

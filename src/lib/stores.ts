@@ -1,54 +1,71 @@
-import { type GetAccountResult, type PublicClient, watchAccount, watchBlockNumber, watchPublicClient, watchWalletClient, createConfig as wagmiCreateConfig, type CreateConfigParameters, type WebSocketPublicClient, watchNetwork, type GetNetworkResult, type GetWalletClientResult, getWalletClient, getPublicClient, getNetwork, getAccount } from '@wagmi/core'
-import { type Writable, derived, writable } from 'svelte/store';
+import type { Chain, Transport } from 'viem';
+import { type Writable, derived, writable, type Readable } from 'svelte/store';
+import { 
+    getAccount, 
+    type Config,
+    watchAccount, 
+    getWalletClient, 
+    getPublicClient, 
+    watchBlockNumber, 
+    watchPublicClient, 
+    type GetAccountReturnType,  
+    type CreateConfigParameters, 
+    type GetWalletClientReturnType, 
+    type GetPublicClientReturnType, 
+    createConfig as wagmiCreateConfig, 
+} from '@wagmi/core'
 
-export const wagmiConfigSetup = writable<boolean>(false);
+export const wagmiConfig = writable<Config>();
 
-export const createConfig = (config: CreateConfigParameters<PublicClient, WebSocketPublicClient>) => {
-    const wagmiConfig = wagmiCreateConfig(config)
-    wagmiConfigSetup.set(true)
-    return wagmiConfig
+export const createConfig = <
+    const chains extends readonly [Chain, ...Chain[]],
+    transports extends Record<chains[number]['id'], Transport>,
+>(
+    config: CreateConfigParameters<chains, transports>
+) => {
+    const _wagmiConfig = wagmiCreateConfig(config)
+    wagmiConfig.set(_wagmiConfig)
+    return _wagmiConfig
 }
 
-export const account = derived<Writable<boolean>, undefined | GetAccountResult<PublicClient>>(wagmiConfigSetup, ($wagmiConfigSetup, set) => {
-    if ($wagmiConfigSetup) {
-        set(getAccount())
-        return watchAccount((account) => {
-            set(account)
+export const account = derived<Writable<Config>, GetAccountReturnType>(
+    wagmiConfig, 
+    ($wagmiConfig, set) => {
+        set(getAccount($wagmiConfig))
+        return watchAccount($wagmiConfig, {
+            onChange(account) {
+                set(account)
+            }
         })
     }
-})
+)
 
-export const blockNumber = derived<Writable<boolean>, undefined | bigint>(wagmiConfigSetup, ($wagmiConfigSetup, set) => {
-    if ($wagmiConfigSetup) {
-        return watchBlockNumber({ listen: true }, (blockNumber) => {
-            set(blockNumber)
+export const blockNumber = derived<Writable<Config>, bigint>(
+    wagmiConfig, 
+    ($wagmiConfig, set) => {
+        return watchBlockNumber($wagmiConfig, {
+            onBlockNumber(blockNumber) {
+                set(blockNumber)
+            }    
         })
     }
-})
+)
 
-export const network = derived<Writable<boolean>, undefined | GetNetworkResult>(wagmiConfigSetup, ($wagmiConfigSetup, set) => {
-    if ($wagmiConfigSetup) {
-        set(getNetwork())
-        return watchNetwork((network) => {
-            set(network)
+export const publicClient = derived<Writable<Config>, GetPublicClientReturnType>(
+    wagmiConfig, 
+    ($wagmiConfig, set) => {
+        set(getPublicClient($wagmiConfig))
+        return watchPublicClient($wagmiConfig, {
+            onChange(publicClient) {
+                set(publicClient)
+            }
         })
     }
-})
+)
 
-export const publicClient = derived<Writable<boolean>, undefined | PublicClient>(wagmiConfigSetup, ($wagmiConfigSetup, set) => {
-    if ($wagmiConfigSetup) {
-        set(getPublicClient())
-        return watchPublicClient({}, (publicClient) => {
-            set(publicClient)
-        })
+export const walletClient: Readable<GetWalletClientReturnType> = derived<Writable<Config>, GetWalletClientReturnType>(
+    wagmiConfig, 
+    ($wagmiConfig, set) => {
+        getWalletClient($wagmiConfig).then(r => set(r))
     }
-})
-
-export const walletClient = derived<Writable<boolean>, undefined | GetWalletClientResult>(wagmiConfigSetup, ($wagmiConfigSetup, set) => {
-    if ($wagmiConfigSetup) {
-        getWalletClient().then(r => set(r))
-        return watchWalletClient({}, (walletClient) => {
-            set(walletClient)
-        })
-    }
-})
+)

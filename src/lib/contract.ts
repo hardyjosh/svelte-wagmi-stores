@@ -1,7 +1,7 @@
-import { walletClient } from "./stores.js";
-import { prepareWriteContract, writeContract, getPublicClient, type ReadContractConfig, type ReadContractResult, type PrepareWriteContractConfig, type PrepareWriteContractResult, type WalletClient, type WriteContractPreparedArgs, type WriteContractResult, type WriteContractUnpreparedArgs, waitForTransaction } from "@wagmi/core";
-import { derived, writable, type Writable } from "svelte/store";
-import type { Abi, Hex, ReadContractParameters, TransactionReceipt } from "viem";
+import { wagmiConfig, walletClient } from "./stores.js";
+import { writeContract, type ReadContractParameters, type ReadContractReturnType, type WriteContractParameters, type WriteContractReturnType, readContract, waitForTransaction } from "@wagmi/core";
+import { derived, get, writable, type Writable } from "svelte/store";
+import type { Abi, Hex, TransactionReceipt, WalletClient, ContractFunctionArgs, ContractFunctionName } from "viem";
 
 /**
  * 
@@ -21,7 +21,7 @@ export const makeContractStore = <TAbi extends Abi>(abi: TAbi, address?: `0x${st
 
 type ContractWriteHooks = {
     onError?: (error: Error) => void
-    onSettled?: (result: WriteContractResult) => void
+    onSettled?: (result: WriteContractReturnType) => void
     onSuccess?: (args: { hash: Hex, receipt: TransactionReceipt }) => void
 }
 
@@ -49,23 +49,20 @@ export class WagmiContract<TAbi extends Abi> {
     private walletClient: WalletClient | undefined
     private abi: TAbi
 
-    async read<
-        TFunctionName extends string,
-    >({
+    async read({
         account,
-        chainId,
         args,
         functionName,
         blockNumber,
         blockTag,
-    }: Omit<ReadContractConfig<TAbi, TFunctionName>, 'address' | "abi">): Promise<
-        ReadContractResult<TAbi, TFunctionName> | undefined
-    > {
+      }: Omit<ReadContractParameters<TAbi>, "address" | "abi">
+    ): Promise<ReadContractReturnType<TAbi> | undefined> {
         if (!this.address) {
             return undefined
         }
-        const publicClient = getPublicClient({ chainId })
-        return publicClient.readContract({
+        return readContract(
+          get(wagmiConfig), 
+          {
             abi: this.abi,
             address: this.address,
             account,
@@ -73,42 +70,11 @@ export class WagmiContract<TAbi extends Abi> {
             args,
             blockNumber,
             blockTag,
-        } as unknown as ReadContractParameters<TAbi, TFunctionName>)
+          } as ReadContractParameters<TAbi>
+        )
     };
 
-    async prepareWrite<
-        TFunctionName extends string,
-        TChainId extends number,
-        TWalletClient extends WalletClient = WalletClient
-    >({
-        args,
-        chainId,
-        functionName,
-    }: Omit<PrepareWriteContractConfig<
-        TAbi,
-        TFunctionName,
-        TChainId,
-        TWalletClient
-    >, 'abi' | 'address' | 'walletClient'>): Promise<PrepareWriteContractResult<TAbi, TFunctionName, TChainId>> {
-
-        return await prepareWriteContract({
-            address: this.address,
-            walletClient: this.walletClient,
-            abi: this.abi,
-            functionName,
-            args,
-            chainId
-        } as PrepareWriteContractConfig<TAbi, TFunctionName, TChainId, TWalletClient>)
-    }
-
-    write<
-        TFunctionName extends string,
-    >(
-        config:
-            ContractWriteHooks &
-            (Omit<WriteContractUnpreparedArgs<TAbi, TFunctionName>, 'address' | 'abi'>
-                | WriteContractPreparedArgs<TAbi, TFunctionName>),
-    ): ContractWriteReturn {
+    write(config: ContractWriteHooks & WriteContractParameters): ContractWriteReturn {
 
         const result: ContractWriteReturn = {
             status: writable('idle'),
@@ -126,13 +92,12 @@ export class WagmiContract<TAbi extends Abi> {
             return result
         }
 
-        let _config: WriteContractUnpreparedArgs<TAbi, TFunctionName>
-            | WriteContractPreparedArgs<TAbi, TFunctionName>
+        let _config: WriteContractParameters;
 
-        if (config.mode !== 'prepared') {
-            _config = { ...config, address: this.address, abi: this.abi } as WriteContractUnpreparedArgs<TAbi, TFunctionName>
+        if (config.__mode !== 'prepared') {
+            _config = { ...config, address: this.address, abi: this.abi } as WriteContractParameters
         } else {
-            _config = config as WriteContractPreparedArgs<TAbi, TFunctionName>
+            _config = config;
         }
 
         result.write = () => {
@@ -140,9 +105,9 @@ export class WagmiContract<TAbi extends Abi> {
             result.status.set('loading')
             result.isIdle.set(false)
             result.isLoading.set(true)
-            writeContract(_config).then(({ hash }) => {
+            writeContract(get(wagmiConfig), _config).then(( hash ) => {
                 result.data.set({ hash })
-                waitForTransaction({ hash }).then(receipt => {
+                waitForTransaction(get(wagmiConfig), { hash }).then(receipt => {
                     result.status.set('success')
                     result.isSuccess.set(true)
                     result.isLoading.set(false)
@@ -162,7 +127,7 @@ export class WagmiContract<TAbi extends Abi> {
             result.isError.set(false)
             result.isIdle.set(false)
             result.isLoading.set(true)
-            const { hash } = await writeContract(_config)
+            const hash  = await writeContract(get(wagmiConfig), _config)
             result.data.set({ hash })
             result.isSuccess.set(true)
             result.isLoading.set(false)
