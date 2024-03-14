@@ -15,7 +15,7 @@
 	const projectId = import.meta.env.VITE_PROJECT_ID;
 	const metadata = {
 		name: 'project-name',
-		description: "some description",
+		description: 'some description',
 		url: 'https://some-url.com', // must match with walletconnect domain
 		icons: ['https://avatars.githubusercontent.com/u/37784886']
 	}
@@ -23,8 +23,8 @@
 	createConfig({
 		chains: [mainnet, polygon],
 		transports: {
-			[mainnet.id]: http("mainnet-rpc-url"),
-			[polygon.id]: http("polygon-rpc-url")
+			[mainnet.id]: http(mainnet.rpcUrls.default.http[0]), // or desired rpc url of the network
+			[polygon.id]: http(polygon.rpcUrls.default.http[0])  // or desired rpc url of the network
 		},
 		connectors: [
 			walletConnect({ projectId, metadata, showQrModal: false }),
