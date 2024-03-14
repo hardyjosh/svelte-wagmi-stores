@@ -66,7 +66,7 @@ However, before you can use the stores, you must use `createConfig` from this pa
 
   let web3modal: ReturnType<typeof createWeb3Modal>;
 
-  $: if (browser) {
+  $: if (browser && $wagmiConfig) {
     web3modal = createWeb3Modal({
       wagmiConfig: $wagmiConfig,
       projectId,
