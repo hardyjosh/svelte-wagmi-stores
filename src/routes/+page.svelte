@@ -21,16 +21,16 @@
 	}
 
 	createConfig({
-    chains: [mainnet, polygon],
-    transports: {
+		chains: [mainnet, polygon],
+		transports: {
 			[mainnet.id]: http("mainnet-rpc-url"),
 			[polygon.id]: http("polygon-rpc-url")
 		},
-    connectors: [
-      walletConnect({ projectId, metadata, showQrModal: false }),
+		connectors: [
+			walletConnect({ projectId, metadata, showQrModal: false }),
 			// ... other connectors
-    ],
-  });
+		],
+	});
 
 	let web3modal: ReturnType<typeof createWeb3Modal>;
 
@@ -69,6 +69,6 @@
 
 <p>account</p>
 <pre>
-  {JSON.stringify($account, null, 2)}
+	{JSON.stringify($account, null, 2)}
 </pre>
 <hr />
