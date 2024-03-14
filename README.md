@@ -42,7 +42,7 @@ However, before you can use the stores, you must use `createConfig` from this pa
 		createConfig,
 		walletClient,
 		wagmiConfig,
-	} from '$lib/index.js';
+	} from 'svelte-wagmi-stores';
 
 	const projectId = import.meta.env.VITE_PROJECT_ID;
 	const metadata = {
@@ -52,50 +52,49 @@ However, before you can use the stores, you must use `createConfig` from this pa
 		icons: ['https://avatars.githubusercontent.com/u/37784886']
 	}
 
-	createConfig({
+  createConfig({
     chains: [mainnet, polygon],
     transports: {
-			[mainnet.id]: http("mainnet-rpc-url"),
-			[polygon.id]: http("polygon-rpc-url")
-		},
+      [mainnet.id]: http("mainnet-rpc-url"),
+      [polygon.id]: http("polygon-rpc-url")
+    },
     connectors: [
       walletConnect({ projectId, metadata, showQrModal: false }),
-			// ... other connectors
+      // ... other connectors
     ],
   });
 
-	let web3modal: ReturnType<typeof createWeb3Modal>;
+  let web3modal: ReturnType<typeof createWeb3Modal>;
 
-	$: if (browser) {
-		web3modal = createWeb3Modal({
-			wagmiConfig: $wagmiConfig,
-			projectId,
-			enableAnalytics: true, // Optional - defaults to your Cloud configuration
-			enableOnramp: true, // Optional - false as default
-			// ... other options
-		});
-	}
-
+  $: if (browser) {
+    web3modal = createWeb3Modal({
+      wagmiConfig: $wagmiConfig,
+      projectId,
+      enableAnalytics: true, // Optional - defaults to your Cloud configuration
+      enableOnramp: true, // Optional - false as default
+      // ... other options
+    });
+  }
 </script>
 
 {#if web3modal}
-	<button on:click={() => web3modal.open()}>
-		{#if $account?.isConnected}
-			Disconnect
-		{:else}
-			Connect
-		{/if}
-	</button>
+  <button on:click={() => web3modal.open()}>
+    {#if $account?.isConnected}
+      Disconnect
+    {:else}
+      Connect
+    {/if}
+  </button>
 {/if}
 
 <p>blockumber</p>
 <p>
-	{$blockNumber}
+  {$blockNumber}
 </p>
 <hr />
 <p>walletClient</p>
 <p>
-	{$walletClient}
+  {$walletClient}
 </p>
 <hr />
 
