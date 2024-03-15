@@ -34,7 +34,7 @@
 
 	let web3modal: ReturnType<typeof createWeb3Modal>;
 
-	$: if (browser) {
+	$: if (browser && $wagmiConfig) {
 		web3modal = createWeb3Modal({
 			wagmiConfig: $wagmiConfig,
 			projectId,
