@@ -12,8 +12,15 @@ import {
     type CreateConfigParameters, 
     type GetWalletClientReturnType, 
     type GetPublicClientReturnType, 
-    createConfig as wagmiCreateConfig, 
+    createConfig as wagmiCreateConfig,
+    type WatchAccountReturnType,
+    type WatchBlockNumberReturnType,
+    type WatchPublicClientReturnType, 
 } from '@wagmi/core'
+
+let cancelAccountWatcher: WatchAccountReturnType;
+let cancelBlockNumberWatcher: WatchBlockNumberReturnType;
+let cancelPublicClientWatcher: WatchPublicClientReturnType;
 
 export const wagmiConfig = writable<Config>();
 
@@ -23,6 +30,9 @@ export const createConfig = <
 >(
     config: CreateConfigParameters<chains, transports>
 ) => {
+    if (cancelAccountWatcher) cancelAccountWatcher();
+    if (cancelBlockNumberWatcher) cancelBlockNumberWatcher();
+    if (cancelPublicClientWatcher) cancelPublicClientWatcher();
     const _wagmiConfig = wagmiCreateConfig(config)
     wagmiConfig.set(_wagmiConfig)
     return _wagmiConfig
@@ -33,7 +43,7 @@ export const account = derived<Writable<Config>, GetAccountReturnType>(
     ($wagmiConfig, set) => {
         if ($wagmiConfig) {
             set(getAccount($wagmiConfig))
-            watchAccount($wagmiConfig, {
+            cancelAccountWatcher = watchAccount($wagmiConfig, {
                 onChange(account) {
                     set(account)
                 }
@@ -46,7 +56,7 @@ export const blockNumber = derived<Writable<Config>, bigint>(
     wagmiConfig, 
     ($wagmiConfig, set) => {
         if ($wagmiConfig) {
-            watchBlockNumber($wagmiConfig, {
+            cancelBlockNumberWatcher = watchBlockNumber($wagmiConfig, {
                 onBlockNumber(blockNumber) {
                     set(blockNumber)
                 }    
@@ -60,7 +70,7 @@ export const publicClient = derived<Writable<Config>, GetPublicClientReturnType>
     ($wagmiConfig, set) => {
         if ($wagmiConfig) {
             set(getPublicClient($wagmiConfig))
-            watchPublicClient($wagmiConfig, {
+            cancelPublicClientWatcher = watchPublicClient($wagmiConfig, {
                 onChange(publicClient) {
                     set(publicClient)
                 }
